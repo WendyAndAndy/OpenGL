@@ -11,13 +11,25 @@ using namespace std;
 
 void on_size_changed(GLFWwindow*, int, int);
 void processInput(GLFWwindow*);
-void on_mouse_pos_changed(GLFWwindow*, double xpos, double ypos);
+void on_mouse_pos_changed(GLFWwindow*, double, double);
+void scroll_callback(GLFWwindow*, double, double);
 
 glm::vec3 camPos = glm::vec3(0.f, 0.f, 3.f);
 glm::vec3 camFront = glm::vec3(0.f, 0.f, -1.f);
 glm::vec3 camUp = glm::vec3(0.f, 1.f, 0.f);
 float deltaTime = 0.f;
 float lastFrameTime = 0.f;
+
+//mouse control XZ pitch, yaw
+bool firstMouse = true;
+float lastX = 400;
+float lastY = 300;
+float pitch = 0.f;
+float yaw = -90.f;
+float fov = 45.f;
+
+//mouse wheel
+
 
 int main()
 {
@@ -33,7 +45,7 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-	GLFWwindow* win = glfwCreateWindow(WIDTH, HEIGHT, u8"FPS Camera(ADWS to move Camera)", NULL, NULL);
+	GLFWwindow* win = glfwCreateWindow(WIDTH, HEIGHT, u8"FPS Camera(ADWS to move, Mouse to rotate)", NULL, NULL);
 	if (win == NULL)
 	{
 		cout << "Failed to create GLFW window" << endl;
@@ -44,6 +56,7 @@ int main()
 
 	glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(win, on_mouse_pos_changed);
+	glfwSetScrollCallback(win, scroll_callback);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -168,10 +181,6 @@ int main()
 	shader.setInt("texture1", 0);
 	shader.setInt("texture2", 1);
 
-	//retrieve the matrix uniform locations
-	unsigned int modelLoc = glGetUniformLocation(shader.ID, "model");
-	unsigned int viewLoc = glGetUniformLocation(shader.ID, "view");
-
 	//render loop
 	while (!glfwWindowShouldClose(win))
 	{
@@ -192,20 +201,10 @@ int main()
 		//activate shader
 		shader.use();
 		//create transformations
-		glm::mat4 model = glm::mat4(1.f);
-		//float radius = 10.f;
-		//float camX = sin(glfwGetTime()) * radius;
-		//float camZ = cos(glfwGetTime()) * radius;
-		//glm::mat4 view = glm::lookAt(glm::vec3(camX, 0.f, camZ), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 		glm::mat4 view = glm::lookAt(camPos, camPos + camFront, camUp);
-		glm::mat4 projection = glm::mat4(1.f);
-		model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.f, 1.f, 1.f));
-		projection = glm::perspective(glm::radians(45.f), float(WIDTH) / float(HEIGHT), .1f, 100.f);
-		//pass the matrix uniform to shader (3 different ways)
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
-		//currently we set the prjection matrix each frame,but since it rarely changes,
-		//it's often best practice to set it outside the main loop only once!
+		shader.setMat4("view", view);
+		//glm::mat4 projection = glm::perspective(glm::radians(45.f), float(WIDTH) / float(HEIGHT), .1f, 100.f);
+		glm::mat4 projection = glm::perspective(glm::radians(fov), float(WIDTH) / float(HEIGHT), .1f, 100.f);
 		shader.setMat4("projection", projection);
 
 		//render the box
@@ -215,7 +214,7 @@ int main()
 		//10 boxes
 		for (size_t i = 0; i < 10; i++)
 		{
-			model = glm::mat4(1.f);
+			glm::mat4 model = glm::mat4(1.f);
 			model = glm::translate(model, posList[i]);
 			float angle = 20.f * i;
 			if (i % 3 == 0)
@@ -277,5 +276,47 @@ void processInput(GLFWwindow* win)
 
 void on_mouse_pos_changed(GLFWwindow*, double xpos, double ypos)
 {
-	
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+	lastX = xpos;
+	lastY = ypos;
+
+	float sensitivity = .01f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yaw += xoffset;
+	pitch += yoffset;
+
+	if (pitch > 89.f)
+	{
+		pitch = 89.f;
+	}
+	if (pitch < -89.f)
+	{
+		pitch = -89.f;
+	}
+
+	glm::vec3 front;
+	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	front.y = sin(glm::radians(pitch));
+	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	camFront = glm::normalize(front);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	if (fov >= 1.0f && fov <= 45.0f)
+		fov -= yoffset;
+	if (fov <= 1.0f)
+		fov = 1.0f;
+	if (fov >= 45.0f)
+		fov = 45.0f;
 }

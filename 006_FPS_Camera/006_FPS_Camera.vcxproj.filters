@@ -28,4 +28,8 @@
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\shaders\006_camera.fs" />
+    <None Include="..\shaders\006_camera.vs" />
+  </ItemGroup>
 </Project>
