@@ -20,10 +20,10 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{0f6809ff-9088-46cc-88c5-14cb26e553a7}</ProjectGuid>
-    <RootNamespace>_006_FPS_Camera</RootNamespace>
+    <ProjectGuid>{8002ee8e-b6c8-464b-b1d6-22c90cf854d9}</ProjectGuid>
+    <RootNamespace>_006_Camera</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
-    <ProjectName>006_FPS_Camera</ProjectName>
+    <ProjectName>006_Camera</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -124,14 +124,7 @@
     <ClCompile Include="..\include\glad\glad.c" />
     <ClCompile Include="..\include\shader.cpp" />
     <ClCompile Include="..\include\stb_image.cpp" />
-    <ClCompile Include="006_camera.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\shaders\006_camera.fs" />
-    <None Include="..\shaders\006_camera.vs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\include\camera.h" />
+    <ClCompile Include="006_Camera.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
